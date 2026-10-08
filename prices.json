@@ -1,0 +1,10 @@
+{
+  "read": "2026-10-08",
+  "unit": "US dollars per million tokens",
+  "models": [
+    {"id": "claude-sonnet-5.5", "name": "Claude Sonnet 5.5", "maker": "Anthropic", "in": 2.00, "hit": 0.10, "write": 2.50, "out": 10.00},
+    {"id": "gpt-6.1-sol", "name": "gpt-6.1-sol", "maker": "OpenAI", "in": 2.00, "hit": 0.10, "write": 2.00, "out": 10.00},
+    {"id": "kimi-k2.7-code", "name": "kimi-k2.7-code", "maker": "Moonshot (Kimi)", "in": 0.95, "hit": 0.19, "write": 0.95, "out": 4.00},
+    {"id": "deepseek-flash", "name": "deepseek-flash", "maker": "DeepSeek", "in": 0.15, "hit": 0.003, "write": 0.15, "out": 0.60}
+  ]
+}

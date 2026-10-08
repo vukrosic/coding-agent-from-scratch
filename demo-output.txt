@@ -1,0 +1,138 @@
+
+=== step1_call.py
+request 1: 1532 bytes of text
+  instructions   49 tokens
+  the task       21 tokens
+  4 tool notes  293 tokens
+  total         363 tokens
+reply 1: {"role": "assistant", "content": "I will look at what is in the project first.", "tool_calls": [{"id": "call_1", "type": "function", "function": {"nam
+  15 tokens
+request 2: everything in request 1 again, plus the reply, plus the result
+  total         417 tokens, of which 54 are new
+
+=== step2_tools.py
+list_files
+README.md  200 bytes
+cart.py  1736 bytes
+inventory.py  659 bytes
+test_cart.py  1535 bytes
+test_inventory.py  817 bytes
+
+run_tests: 14 tests, 2 fail: test_order_of_exactly_fifty_ships_free, test_two_of_the_same_item
+AssertionError: 499 != 0
+AssertionError: 800 != 1600
+
+read_file cart.py: 49 lines, 1736 characters
+
+edited cart.py
+  lines that differ: 1
+  put back: True
+
+=== step3_loop.py
+1  list_files I will look at what is in the project first.
+2  run_tests  Now I run the tests to see which ones fail.
+3  read_file  Both failing tests are about the cart. I will read cart.py.
+4  edit_file  subtotal() adds the price once and ignores the quantity. Two mugs must cost 1600.
+5  edit_file  shipping() uses > so an order of exactly 5000 still pays. The comment says 50.00 or more is free.
+6  run_tests  Both fixes are in. I run the tests again.
+7  finished   Fixed two bugs in cart.py. subtotal() ignored the quantity of each item, and shipping() charged an order of exactly 50.00. All 14 tests pass now.
+
+ending: done after 7 calls to the model, 15 messages in the conversation
+tests before: FAILED (failures=2)   tests after: OK
+-        return sum(price for name, price, quantity in self.items)
++        return sum(price * quantity for name, price, quantity in self.items)
+-        if after > FREE_SHIPPING_FROM:
++        if after >= FREE_SHIPPING_FROM:
+every other file unchanged: True
+
+=== step4_meter.py
+call   tokens in   tokens out
+   1         363           15
+   2         417           15
+   3         777           24
+   4        1275           67
+   5        1346           62
+   6        1412           15
+   7        1630           37
+sum         7220          235
+
+all the text of the run, counted once: 1667 tokens
+tokens sent to the model:              7220  (4.3 times as many)
+
+piece                  tokens  sent  paid
+tool notes                293     7  2051
+instructions               49     7   343
+the task                   21     7   147
+reply:  list_files         15     6    90
+result: list_files         39     6   234
+reply:  run_tests          15     5    75
+result: run_tests         345     5  1725
+reply:  read_file          24     4    96
+result: read_file         474     4  1896
+reply:  edit_file          67     3   201
+result: edit_file           4     3    12
+reply:  edit_file          62     2   124
+result: edit_file           4     2     8
+reply:  run_tests          15     1    15
+result: run_tests         203     1   203
+reply:  summary            37     0     0
+
+where the 7220 tokens go: {'tool notes': 2051, 'instructions and task': 490, 'results': 4078, 'replies': 601}
+
+steps   tokens in   compared with half as many steps
+    5        6755   
+   10       25860   3.8 times
+   20      101120   3.9 times
+   40      399840   4.0 times
+   80     1590080   4.0 times
+
+=== step5_guard.py
+1. the model asks for ../secret.txt and for the full path
+   ERROR: ../secret.txt is outside the project folder
+   ERROR: /tmp/agent/secret.txt is outside the project folder
+   the same request with no check returns: PAYMENT_KEY=this-is-a-made-up-key-for-the-test
+2. the model asks for run_shell: ERROR: no tool called 'run_shell'
+3. wrong edit: ERROR: the old text appears 0 times in cart.py, it must appear once; nothing was changed
+   file untouched by the failed edit: True
+   run ends: done, tests: OK, 8 calls, 8809 tokens in
+   the good run: 7 calls, 7220 tokens in. One slip costs 1589 more tokens (22% more)
+4. stuck model, limit  20: stopped at the step limit, 101120 tokens in (14 good runs)
+4. stuck model, limit 100: stopped at the step limit, 2481600 tokens in (344 good runs)
+
+=== step6_cut.py
+good run (7 calls), prices of Claude Sonnet 5.5
+                             tokens in   dollars   with cache price
+as built                          7220   0.01679   0.00698
+quiet tests                       6227   0.01480   0.00604
+forgetting                        5167   0.01268   0.00925
+quiet tests and forgetting        4654   0.01166   0.00797
+the first test report: 344 tokens loud, 184 tokens quiet
+quiet tests save 993 tokens on the run (14%)
+the cache price alone: 58% off the bill
+repeated tokens in the good run: 5590 of 7220
+
+long run (40 steps, each step reads the same 474-token file)
+as built                        399840   0.80768   0.09509   last request 19629 tokens
+forgetting                       72945   0.15389   0.10707   last request 2424 tokens
+
+=== step7_wire.py
+requests sent over HTTP: 7
+bytes sent: 1527 1899 3794 5871 6347 6775 7879  (sum 34092)
+run ends: done, tests: OK
+same conversation as the direct run: True
+usage reported by the server: 7220 tokens in, 235 tokens out
+a request with no key: HTTP 401
+
+=== step8_price.py
+prices read 2026-10-08, US dollars per million tokens
+one fix: 7220 tokens in, 235 tokens out
+model                    in repeat    out |   one fix    cached |  1,000 fixes |  stuck 100
+Claude Sonnet 5.5      2.00  0.100  10.00 | $0.01679 $0.00698 | $16.79 $ 6.98 | $4.98
+gpt-6.1-sol            2.00  0.100  10.00 | $0.01679 $0.00617 | $16.79 $ 6.17 | $4.98
+kimi-k2.7-code         0.95  0.190   4.00 | $0.00780 $0.00355 | $ 7.80 $ 3.55 | $2.37
+deepseek-flash         0.15  0.003   0.60 | $0.00122 $0.00040 | $ 1.22 $ 0.40 | $0.37
+
+share of the bill that is input, on the first list: 86%
+dearest to cheapest for one fix: 14 times
+
+all checks passed
